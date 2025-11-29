@@ -14,6 +14,8 @@ require("./db/connection.js");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const classRoutes = require("./routes/classRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 
 // Create server instance
 const smartCampusServer = express();
@@ -35,6 +37,10 @@ smartCampusServer.use("/api/auth", authRoutes);
 smartCampusServer.use("/api/admin", adminRoutes);
 // event routes
 smartCampusServer.use("/api/events", eventRoutes);
+// class routes (admin + faculty + shared)
+smartCampusServer.use("/api/admin/classes", classRoutes);
+// student routes
+smartCampusServer.use("/api/student", studentRoutes);
 
 // Fixed server port = 3000
 const PORT = 3000;

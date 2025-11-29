@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const ClassModel = require("../models/classModel");
 const jwt = require("jsonwebtoken");
 
 // register user (plain text password for demo)
@@ -160,6 +161,8 @@ const updateProfile = async (req, res) => {
       return res.status(400).json({ message: "Student ID already in use" });
     }
 
+    const oldClassName = user.className;
+    
     if (name) user.name = name;
     user.className = className;
     user.studentID = studentID;
@@ -168,6 +171,46 @@ const updateProfile = async (req, res) => {
     user.department = department;
 
     await user.save();
+
+    // update class students array if className changed
+    if (className && className !== oldClassName) {
+      // remove from old class if exists
+      if (oldClassName) {
+        const oldClass = await ClassModel.findOne({ className: oldClassName });
+        if (oldClass) {
+          oldClass.students = oldClass.students.filter(
+            (id) => id.toString() !== userId.toString()
+          );
+          await oldClass.save();
+        }
+      }
+
+      // add to new class
+      const newClass = await ClassModel.findOne({ className });
+      if (newClass) {
+        const studentIdStr = userId.toString();
+        const exists = newClass.students.some(
+          (id) => id.toString() === studentIdStr
+        );
+        if (!exists) {
+          newClass.students.push(userId);
+          await newClass.save();
+        }
+      }
+    } else if (className && className === oldClassName) {
+      // ensure student is in the class's students array even if className didn't change
+      const classDoc = await ClassModel.findOne({ className });
+      if (classDoc) {
+        const studentIdStr = userId.toString();
+        const exists = classDoc.students.some(
+          (id) => id.toString() === studentIdStr
+        );
+        if (!exists) {
+          classDoc.students.push(userId);
+          await classDoc.save();
+        }
+      }
+    }
 
     return res.status(200).json({
       message: "Profile updated successfully",

@@ -187,7 +187,45 @@ const getClassDetails = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    return res.status(200).json({ class: classDoc });
+    // also get students who have this className in their profile but aren't in the students array yet
+    const studentsByClassName = await User.find({
+      role: "student",
+      className: classDoc.className,
+    }).select("name email studentID className");
+
+    // merge: students from class.students array + students with matching className
+    const studentIdsInClass = new Set(
+      classDoc.students.map((s) => s._id.toString())
+    );
+    const additionalStudents = studentsByClassName.filter(
+      (s) => !studentIdsInClass.has(s._id.toString())
+    );
+
+    // combine both sources
+    const allStudents = [
+      ...classDoc.students.map((s) => ({
+        _id: s._id,
+        name: s.name,
+        email: s.email,
+        studentID: s.studentID || "",
+        className: s.className || "",
+      })),
+      ...additionalStudents.map((s) => ({
+        _id: s._id,
+        name: s.name,
+        email: s.email,
+        studentID: s.studentID || "",
+        className: s.className || "",
+      })),
+    ];
+
+    // return class with merged students
+    return res.status(200).json({
+      class: {
+        ...classDoc.toObject(),
+        students: allStudents,
+      },
+    });
   } catch (error) {
     console.error("Error in getClassDetails:", error);
     return res.status(500).json({ message: "Server error" });

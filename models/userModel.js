@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "faculty", "admin", "hr"],
       default: "student",
     },
+    className: { type: String },
+    studentID: { type: String, unique: true, sparse: true },
+    phone: { type: String },
+    address: { type: String },
+    department: { type: String },
   },
   {
     timestamps: true,

@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 // register user (plain text password for demo)
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone, department } = req.body;
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Name, email, password and role are required" });
@@ -20,6 +20,8 @@ const registerUser = async (req, res) => {
       email,
       password, // plain text for academic demo
       role,
+      phone,
+      department,
     });
 
     await user.save();
@@ -94,7 +96,9 @@ const getMe = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const user = await User.findById(userId).select("_id name email role");
+    const user = await User.findById(userId).select(
+      "_id name email role className studentID phone address department"
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -106,6 +110,11 @@ const getMe = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        className: user.className || "",
+        studentID: user.studentID || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        department: user.department || "",
       },
     });
   } catch (error) {
@@ -114,4 +123,70 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getMe };
+// update profile (student only)
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role !== "student") {
+      return res.status(403).json({ message: "Only students can update this profile" });
+    }
+
+    const { name, className, studentID, phone, address, department } = req.body;
+
+    // validation
+    if (!studentID) {
+      return res.status(400).json({ message: "Student ID is required" });
+    }
+
+    if (!className) {
+      return res.status(400).json({ message: "Class name is required" });
+    }
+
+    // unique studentID check (sparse allowed)
+    const existingWithStudentID = await User.findOne({
+      studentID,
+      _id: { $ne: userId },
+    });
+    if (existingWithStudentID) {
+      return res.status(400).json({ message: "Student ID already in use" });
+    }
+
+    if (name) user.name = name;
+    user.className = className;
+    user.studentID = studentID;
+    user.phone = phone;
+    user.address = address;
+    user.department = department;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        className: user.className || "",
+        studentID: user.studentID || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        department: user.department || "",
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = { registerUser, loginUser, getMe, updateProfile };

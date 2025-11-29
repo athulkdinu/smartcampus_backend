@@ -1,5 +1,8 @@
 const express = require("express");
-const { createUserByAdmin } = require("../controllers/adminController");
+const {
+  createUserByAdmin,
+  getAllUsers,
+} = require("../controllers/adminController");
 const { verifyToken, roleCheck } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -11,6 +14,9 @@ router.post(
   roleCheck("admin"),
   createUserByAdmin
 );
+
+// admin get all users
+router.get("/users", verifyToken, roleCheck("admin"), getAllUsers);
 
 module.exports = router;
 

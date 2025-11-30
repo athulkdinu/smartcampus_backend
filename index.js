@@ -21,6 +21,9 @@ const attendanceRoutes = require("./routes/attendanceRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const assignmentRoutes = require("./routes/assignmentRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
+const lectureRoutes = require("./routes/lectureRoutes");
+const gradeRoutes = require("./routes/gradeRoutes");
+const examRoutes = require("./routes/examRoutes");
 
 // Create server instance
 const smartCampusServer = express();
@@ -60,6 +63,12 @@ smartCampusServer.use("/api/faculty", facultyRoutes);
 smartCampusServer.use("/api/assignments", assignmentRoutes);
 // complaint routes
 smartCampusServer.use("/api/complaints", complaintRoutes);
+// lecture routes
+smartCampusServer.use("/api/lectures", lectureRoutes);
+// grade routes
+smartCampusServer.use("/api/grades", gradeRoutes);
+// exam routes
+smartCampusServer.use("/api/exams", examRoutes);
 
 // Fixed server port = 3000
 const PORT = 3000;

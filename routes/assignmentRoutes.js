@@ -21,6 +21,14 @@ router.post(
   createAssignment
 );
 
+// POST /api/assignments/create - Create assignment (Faculty only) - Alias for frontend compatibility
+router.post(
+  "/create",
+  verifyToken,
+  roleCheck("faculty"),
+  createAssignment
+);
+
 // GET /api/assignments/faculty - Get faculty's assignments
 router.get(
   "/faculty",
@@ -35,6 +43,16 @@ router.get(
   verifyToken,
   roleCheck("student"),
   getStudentAssignments
+);
+
+// POST /api/assignments/submit/:assignmentId - Submit assignment (Student only) - Alias for frontend compatibility
+// This must come before /:assignmentId/submit to avoid route conflicts
+router.post(
+  "/submit/:assignmentId",
+  verifyToken,
+  roleCheck("student"),
+  assignmentUpload, // Multer middleware for file upload
+  submitAssignment
 );
 
 // POST /api/assignments/:assignmentId/submit - Submit assignment (Student only)
@@ -57,6 +75,14 @@ router.get(
 // PATCH /api/assignments/submissions/:submissionId/status - Update submission status (Faculty only)
 router.patch(
   "/submissions/:submissionId/status",
+  verifyToken,
+  roleCheck("faculty"),
+  updateSubmissionStatus
+);
+
+// PATCH /api/assignments/submission/:submissionId/status - Update submission status (Faculty only) - Alias for frontend compatibility
+router.patch(
+  "/submission/:submissionId/status",
   verifyToken,
   roleCheck("faculty"),
   updateSubmissionStatus

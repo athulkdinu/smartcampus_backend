@@ -11,13 +11,20 @@ const createAssignment = async (req, res) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const { title, description, dueDate, subject, classId } = req.body;
+    const { title, description, dueDate, subject, classId, status } = req.body;
 
     // Validation
     if (!title || !dueDate || !subject || !classId) {
       return res.status(400).json({
         message: "Title, dueDate, subject, and classId are required",
       });
+    }
+
+    // Handle status: Frontend may send "Draft" but we only support "Published" or "Closed"
+    // If status is "Draft", treat it as "Published" (since Draft was removed from requirements)
+    let assignmentStatus = "Published";
+    if (status === "Closed") {
+      assignmentStatus = "Closed";
     }
 
     // Verify class exists
@@ -47,7 +54,7 @@ const createAssignment = async (req, res) => {
       description: description || "",
       subject,
       dueDate: new Date(dueDate),
-      status: "Published",
+      status: assignmentStatus,
     });
 
     await assignment.save();

@@ -1,58 +1,40 @@
 const express = require("express");
 const {
   createClass,
-  assignClassTeacher,
-  assignStudentsToClass,
-  assignSubjectTeacher,
   getAllClasses,
+  getFacultyList,
+  assignTeacher,
+  assignFaculty,
+  assignStudent,
   getClassDetails,
-  getFacultyClasses,
+  getClassStudents,
 } = require("../controllers/classController");
 const { verifyToken, roleCheck } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// admin: create class
+// POST /api/classes - Create new class
 router.post("/", verifyToken, roleCheck("admin"), createClass);
 
-// admin: list classes (for admin UI & dropdowns)
-router.get("/all", verifyToken, getAllClasses);
+// GET /api/classes - Get all classes
+router.get("/", verifyToken, roleCheck("admin"), getAllClasses);
 
-// admin: class details
-router.get("/:id", verifyToken, roleCheck("admin"), getClassDetails);
+// GET /api/classes/faculty-list - Get all faculty (must come before /:classId)
+router.get("/faculty-list", verifyToken, roleCheck("admin"), getFacultyList);
 
-// admin: assign class teacher
-router.put(
-  "/assign-class-teacher",
-  verifyToken,
-  roleCheck("admin"),
-  assignClassTeacher
-);
+// GET /api/classes/:classId/students - Get all students in class (admin + faculty)
+router.get("/:classId/students", verifyToken, roleCheck("admin", "faculty"), getClassStudents);
 
-// admin: assign students to class
-router.put(
-  "/assign-students",
-  verifyToken,
-  roleCheck("admin"),
-  assignStudentsToClass
-);
+// PUT /api/classes/:classId/assign-teacher - Assign class teacher
+router.put("/:classId/assign-teacher", verifyToken, roleCheck("admin"), assignTeacher);
 
-// admin: assign subject teacher
-router.put(
-  "/assign-subject",
-  verifyToken,
-  roleCheck("admin"),
-  assignSubjectTeacher
-);
+// PUT /api/classes/:classId/assign-faculty - Assign faculty to subject
+router.put("/:classId/assign-faculty", verifyToken, roleCheck("admin"), assignFaculty);
 
-// faculty: classes where this faculty is involved
-router.get(
-  "/faculty/my-classes",
-  verifyToken,
-  roleCheck("faculty"),
-  getFacultyClasses
-);
+// PUT /api/classes/:classId/assign-student - Assign student to class
+router.put("/:classId/assign-student", verifyToken, roleCheck("admin"), assignStudent);
+
+// GET /api/classes/:classId - Get class details (must come last)
+router.get("/:classId", verifyToken, roleCheck("admin"), getClassDetails);
 
 module.exports = router;
-
-

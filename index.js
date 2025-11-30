@@ -16,6 +16,10 @@ const adminRoutes = require("./routes/adminRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const classRoutes = require("./routes/classRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const leaveRoutes = require("./routes/leaveRoutes");
+const attendanceRoutes = require("./routes/attendanceRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
+const assignmentRoutes = require("./routes/assignmentRoutes");
 
 // Create server instance
 const smartCampusServer = express();
@@ -25,6 +29,10 @@ smartCampusServer.use(cors());
 
 // Middleware to parse JSON body
 smartCampusServer.use(express.json());
+
+// Serve static files (uploaded files)
+const path = require("path");
+smartCampusServer.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // TEST ROUTE - root
 smartCampusServer.get("/", (req, res) => {
@@ -37,10 +45,18 @@ smartCampusServer.use("/api/auth", authRoutes);
 smartCampusServer.use("/api/admin", adminRoutes);
 // event routes
 smartCampusServer.use("/api/events", eventRoutes);
-// class routes (admin + faculty + shared)
-smartCampusServer.use("/api/admin/classes", classRoutes);
+// class routes - NEW REST API
+smartCampusServer.use("/api/classes", classRoutes);
 // student routes
 smartCampusServer.use("/api/student", studentRoutes);
+// leave routes
+smartCampusServer.use("/api/leaves", leaveRoutes);
+// attendance routes
+smartCampusServer.use("/api/attendance", attendanceRoutes);
+// faculty routes
+smartCampusServer.use("/api/faculty", facultyRoutes);
+// assignment routes
+smartCampusServer.use("/api/assignments", assignmentRoutes);
 
 // Fixed server port = 3000
 const PORT = 3000;

@@ -1,37 +1,40 @@
 const User = require("../models/userModel");
 
-// admin create user (plain text password for demo)
+// admin: create user
 const createUserByAdmin = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, className, studentID, phone, address, department } = req.body;
 
     if (!name || !email || !password || !role) {
-      return res
-        .status(400)
-        .json({ message: "Name, email, password and role are required" });
+      return res.status(400).json({
+        message: "Name, email, password, and role are required",
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "User with this email already exists" });
+      return res.status(400).json({ message: "User with this email already exists" });
     }
 
-    const user = await User.create({
+    const newUser = await User.create({
       name,
       email,
-      password, // plain text for academic demo
+      password,
       role,
+      className: className || null,
+      studentID: studentID || null,
+      phone: phone || null,
+      address: address || null,
+      department: department || null,
     });
 
     return res.status(201).json({
       message: "User created successfully",
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -100,10 +103,35 @@ const getAllFaculty = async (_req, res) => {
   }
 };
 
+// GET /api/admin/admins - Get all admin users (accessible by faculty for messaging)
+const getAdminUsers = async (_req, res) => {
+  try {
+    const admins = await User.find({ role: "admin" })
+      .select("_id name email")
+      .sort({ name: 1 })
+      .lean();
+
+    const mappedAdmins = admins.map((admin) => ({
+      id: admin._id.toString(),
+      _id: admin._id.toString(),
+      name: admin.name,
+      email: admin.email,
+      role: "admin",
+    }));
+
+    return res.status(200).json({
+      admins: mappedAdmins,
+      count: mappedAdmins.length,
+    });
+  } catch (error) {
+    console.error("Error in getAdminUsers:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createUserByAdmin,
   getAllUsers,
   getAllFaculty,
+  getAdminUsers,
 };
-
-

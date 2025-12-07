@@ -160,15 +160,42 @@ const getInbox = async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
 
-    // Get user's class if student or faculty
-    let userClassId = null;
+    // Get user's classes if student or faculty
+    let userClassIds = [];
     if (userRole === "student" || userRole === "faculty") {
       const userData = await User.findById(userId);
+      
+      // Check by className
       if (userData && userData.className) {
         const classData = await ClassModel.findOne({ className: userData.className });
         if (classData) {
-          userClassId = classData._id;
+          userClassIds.push(classData._id);
         }
+      }
+      
+      // For students, also check if they're in any class's students array
+      if (userRole === "student") {
+        const classesWithStudent = await ClassModel.find({ students: userId }).select("_id");
+        classesWithStudent.forEach((cls) => {
+          if (!userClassIds.includes(cls._id)) {
+            userClassIds.push(cls._id);
+          }
+        });
+      }
+      
+      // For faculty, also check classes where they are assigned
+      if (userRole === "faculty") {
+        const facultyClasses = await ClassModel.find({
+          $or: [
+            { classTeacher: userId },
+            { "subjects.teacher": userId },
+          ],
+        }).select("_id");
+        facultyClasses.forEach((cls) => {
+          if (!userClassIds.includes(cls._id)) {
+            userClassIds.push(cls._id);
+          }
+        });
       }
     }
 

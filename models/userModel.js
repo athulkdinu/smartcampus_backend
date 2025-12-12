@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     address: { type: String },
     department: { type: String },
+    resumeUrl: { type: String },
+    resumeOriginalName: { type: String },
+    resumeUpdatedAt: { type: Date },
   },
   {
     timestamps: true,

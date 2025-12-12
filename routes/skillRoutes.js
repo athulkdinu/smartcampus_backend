@@ -1,5 +1,25 @@
 const express = require("express");
-const { verifyToken, roleCheck } = require("../middleware/authMiddleware");
+const {
+  getCourses,
+  getCourse,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  enrollInCourse,
+  unenrollFromCourse,
+  getProgress,
+} = require("../controllers/skillCourseController");
+const {
+  createOrUpdateRound,
+  submitQuiz,
+  completeRound1,
+} = require("../controllers/skillRoundController");
+const {
+  submitProject,
+  getProjectSubmissions,
+  reviewProject,
+  getCourseEnrollments,
+} = require("../controllers/skillProjectController");
 const {
   submitSkill,
   getMySkills,
@@ -7,23 +27,41 @@ const {
   approveSkill,
   rejectSkill,
 } = require("../controllers/skillController");
+const { verifyToken, roleCheck } = require("../middleware/authMiddleware");
+const { projectUpload } = require("../middleware/skillUploadMiddleware");
 
 const router = express.Router();
 
-// POST /api/skills - Submit a skill (Student only)
-router.post("/", verifyToken, roleCheck("student"), submitSkill);
+// Skill Validation Routes (Student submissions for faculty approval)
+router.post("/", verifyToken, roleCheck(["student"]), submitSkill);
+router.get("/mine", verifyToken, roleCheck(["student"]), getMySkills);
+router.get("/", verifyToken, roleCheck(["faculty", "admin"]), getSkillsForFaculty);
+router.patch("/:id/approve", verifyToken, roleCheck(["faculty", "admin"]), approveSkill);
+router.patch("/:id/reject", verifyToken, roleCheck(["faculty", "admin"]), rejectSkill);
 
-// GET /api/skills/mine - Get my skills (Student only)
-router.get("/mine", verifyToken, roleCheck("student"), getMySkills);
+// Courses
+router.get("/courses", verifyToken, getCourses);
+router.get("/courses/:id", verifyToken, getCourse);
+router.post("/courses", verifyToken, roleCheck(["faculty", "admin"]), createCourse);
+router.put("/courses/:id", verifyToken, roleCheck(["faculty", "admin"]), updateCourse);
+router.delete("/courses/:id", verifyToken, roleCheck(["faculty", "admin"]), deleteCourse);
 
-// GET /api/skills - Get skills for faculty (Faculty only)
-router.get("/", verifyToken, roleCheck("faculty"), getSkillsForFaculty);
+// Enrollment
+router.post("/courses/:id/enroll", verifyToken, roleCheck(["student"]), enrollInCourse);
+router.delete("/courses/:id/enroll", verifyToken, roleCheck(["student"]), unenrollFromCourse);
+router.get("/courses/:id/progress", verifyToken, roleCheck(["student"]), getProgress);
 
-// PATCH /api/skills/:id/approve - Approve a skill (Faculty only)
-router.patch("/:id/approve", verifyToken, roleCheck("faculty"), approveSkill);
+// Rounds
+router.post("/courses/:courseId/rounds", verifyToken, roleCheck(["faculty", "admin"]), createOrUpdateRound);
+router.post("/courses/:courseId/rounds/1/complete", verifyToken, roleCheck(["student"]), completeRound1);
+router.post("/courses/:courseId/rounds/:roundNumber/quiz", verifyToken, roleCheck(["student"]), submitQuiz);
 
-// PATCH /api/skills/:id/reject - Reject a skill (Faculty only)
-router.patch("/:id/reject", verifyToken, roleCheck("faculty"), rejectSkill);
+// Projects
+router.post("/courses/:courseId/project", verifyToken, roleCheck(["student"]), projectUpload, submitProject);
+router.get("/courses/:courseId/projects", verifyToken, roleCheck(["faculty", "admin"]), getProjectSubmissions);
+router.put("/projects/:id/review", verifyToken, roleCheck(["faculty", "admin"]), reviewProject);
+
+// Enrollments (Faculty view)
+router.get("/courses/:courseId/enrollments", verifyToken, roleCheck(["faculty", "admin"]), getCourseEnrollments);
 
 module.exports = router;
-

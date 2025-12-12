@@ -7,6 +7,7 @@ const {
   submitAssignment,
   getAssignmentSubmissions,
   updateSubmissionStatus,
+  getUpcomingDeadlines,
 } = require("../controllers/assignmentController");
 const { verifyToken, roleCheck } = require("../middleware/authMiddleware");
 const assignmentUpload = require("../middleware/assignmentUploadMiddleware");
@@ -43,6 +44,14 @@ router.get(
   verifyToken,
   roleCheck("student"),
   getStudentAssignments
+);
+
+// GET /api/assignments/upcoming - Get upcoming deadlines for student
+router.get(
+  "/upcoming",
+  verifyToken,
+  roleCheck("student"),
+  getUpcomingDeadlines
 );
 
 // POST /api/assignments/submit/:assignmentId - Submit assignment (Student only) - Alias for frontend compatibility

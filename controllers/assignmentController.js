@@ -423,6 +423,69 @@ const submitAssignment = async (req, res) => {
   }
 };
 
+// GET /api/assignments/upcoming - Get upcoming deadlines for student
+const getUpcomingDeadlines = async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    if (!studentId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const student = await User.findById(studentId).select("className role");
+    if (!student || student.role !== "student") {
+      return res.status(403).json({ message: "Only students can view upcoming deadlines" });
+    }
+
+    if (!student.className) {
+      return res.status(200).json({
+        deadlines: [],
+        count: 0,
+      });
+    }
+
+    // Find class by className
+    const classDoc = await ClassModel.findOne({ className: student.className });
+    if (!classDoc) {
+      return res.status(200).json({
+        deadlines: [],
+        count: 0,
+      });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get assignments with dueDate >= today, status = Published, limit 3
+    const assignments = await Assignment.find({
+      classId: classDoc._id,
+      status: "Published",
+      dueDate: { $gte: today },
+    })
+      .populate("facultyId", "name email")
+      .populate("classId", "className")
+      .sort({ dueDate: 1 }) // Sort by due date ascending
+      .limit(3);
+
+    // Format for frontend
+    const deadlines = assignments.map((assignment) => ({
+      id: assignment._id,
+      title: assignment.title,
+      dueDate: assignment.dueDate,
+      subject: assignment.subject,
+      classId: assignment.classId?.className || student.className,
+      faculty: assignment.facultyId?.name || "Faculty",
+    }));
+
+    return res.status(200).json({
+      deadlines,
+      count: deadlines.length,
+    });
+  } catch (error) {
+    console.error("Error in getUpcomingDeadlines:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   createAssignment,
   getFacultyAssignments,
@@ -431,5 +494,6 @@ module.exports = {
   submitAssignment,
   getAssignmentSubmissions,
   updateSubmissionStatus,
+  getUpcomingDeadlines,
 };
 

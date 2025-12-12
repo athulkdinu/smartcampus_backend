@@ -28,6 +28,7 @@ const communicationRoutes = require("./routes/communicationRoutes");
 const skillRoutes = require("./routes/skillRoutes");
 const placementRoutes = require("./routes/placementRoutes");
 const timetableRoutes = require("./routes/timetableRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 // Create server instance
 const smartCampusServer = express();
@@ -81,6 +82,8 @@ smartCampusServer.use("/api/skills", skillRoutes);
 smartCampusServer.use("/api/placements", placementRoutes);
 // timetable routes
 smartCampusServer.use("/api/timetable", timetableRoutes);
+// announcement routes
+smartCampusServer.use("/api/announcements", announcementRoutes);
 
 // Fixed server port = 3000
 const PORT = 3000;

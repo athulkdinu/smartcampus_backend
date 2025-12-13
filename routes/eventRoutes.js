@@ -3,6 +3,7 @@ const {
   createEvent,
   getStudentApprovedEvents,
   getStudentProposals,
+  getStudentEvents,
   getFacultyRequests,
   updateEventStatus,
   getAdminEvents,
@@ -31,6 +32,20 @@ router.get(
   verifyToken,
   roleCheck("student"),
   getStudentProposals
+);
+// student: get all own events (all statuses)
+router.get(
+  "/my-events",
+  verifyToken,
+  roleCheck("student"),
+  getStudentEvents
+);
+// student: get approved events (alternative route)
+router.get(
+  "/approved",
+  verifyToken,
+  roleCheck("student"),
+  getStudentApprovedEvents
 );
 
 // faculty: student-originated requests

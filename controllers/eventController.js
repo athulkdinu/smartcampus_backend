@@ -93,6 +93,26 @@ const getStudentProposals = async (req, res) => {
   }
 };
 
+// student: get all own events (all statuses)
+const getStudentEvents = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const events = await Event.find({
+      createdBy: userId,
+      submittedByRole: "student",
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({ events });
+  } catch (error) {
+    console.error("Error in getStudentEvents:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 // faculty: see student-originated events for review
 const getFacultyRequests = async (_req, res) => {
   try {
@@ -161,6 +181,7 @@ module.exports = {
   createEvent,
   getStudentApprovedEvents,
   getStudentProposals,
+  getStudentEvents,
   getFacultyRequests,
   updateEventStatus,
   getAdminEvents,

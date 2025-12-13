@@ -62,13 +62,17 @@ const submitQuiz = async (req, res) => {
       return res.status(400).json({ message: "Invalid round number. Only rounds 2 and 4 have quizzes." });
     }
 
+    if (!answers || !Array.isArray(answers)) {
+      return res.status(400).json({ message: "Answers array is required" });
+    }
+
     const enrollment = await SkillEnrollment.findOne({
       course: req.params.courseId,
       student: req.user.id,
     });
 
     if (!enrollment) {
-      return res.status(404).json({ message: "Not enrolled" });
+      return res.status(404).json({ message: "Not enrolled in this course" });
     }
 
     const round = await SkillRound.findOne({
@@ -77,7 +81,13 @@ const submitQuiz = async (req, res) => {
     });
 
     if (!round || !round.questions || round.questions.length === 0) {
-      return res.status(404).json({ message: "Quiz not found" });
+      return res.status(404).json({ message: "Quiz not found for this round" });
+    }
+
+    if (answers.length !== round.questions.length) {
+      return res.status(400).json({ 
+        message: `Expected ${round.questions.length} answers, got ${answers.length}` 
+      });
     }
 
     // Check prerequisites
@@ -91,7 +101,7 @@ const submitQuiz = async (req, res) => {
     // Calculate score
     let correct = 0;
     round.questions.forEach((q, idx) => {
-      if (answers[idx] === q.correctIndex) {
+      if (answers[idx] !== undefined && answers[idx] === q.correctIndex) {
         correct++;
       }
     });

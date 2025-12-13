@@ -52,9 +52,10 @@ router.delete("/courses/:id/enroll", verifyToken, roleCheck("student"), unenroll
 router.get("/courses/:id/progress", verifyToken, roleCheck("student"), getProgress);
 
 // Rounds
-router.post("/courses/:courseId/rounds", verifyToken, roleCheck("faculty", "admin"), createOrUpdateRound);
+// IMPORTANT: More specific routes must come before parameterized routes
 router.post("/courses/:courseId/rounds/1/complete", verifyToken, roleCheck("student"), completeRound1);
 router.post("/courses/:courseId/rounds/:roundNumber/quiz", verifyToken, roleCheck("student"), submitQuiz);
+router.post("/courses/:courseId/rounds", verifyToken, roleCheck("faculty", "admin"), createOrUpdateRound);
 
 // Projects
 router.post("/courses/:courseId/project", verifyToken, roleCheck("student"), projectUpload, submitProject);

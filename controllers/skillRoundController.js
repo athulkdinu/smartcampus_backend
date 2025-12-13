@@ -55,7 +55,12 @@ const createOrUpdateRound = async (req, res) => {
 // Submit quiz (Round 2 or 4)
 const submitQuiz = async (req, res) => {
   try {
-    const { roundNumber, answers } = req.body; // answers: [0, 1, 2, ...] array of selected option indices
+    const { answers } = req.body; // answers: [0, 1, 2, ...] array of selected option indices
+    const roundNumber = parseInt(req.params.roundNumber); // Get roundNumber from URL params
+
+    if (!roundNumber || ![2, 4].includes(roundNumber)) {
+      return res.status(400).json({ message: "Invalid round number. Only rounds 2 and 4 have quizzes." });
+    }
 
     const enrollment = await SkillEnrollment.findOne({
       course: req.params.courseId,

@@ -197,16 +197,26 @@ const getFacultyClasses = async (req, res) => {
       return res.status(403).json({ message: "Only faculty can view their classes" });
     }
 
-    // Find classes where faculty is assigned
+    // Find classes where faculty is assigned and populate teacher info
     const classes = await ClassModel.find({
       $or: [{ classTeacher: facultyId }, { "subjects.teacher": facultyId }],
-    }).select("className department classTeacher subjects");
+    })
+    .select("className department classTeacher subjects")
+    .populate("subjects.teacher", "name email")
+    .populate("classTeacher", "name email");
 
     const classList = classes.map((cls) => ({
       className: cls.className,
       department: cls.department,
       isClassTeacher: cls.classTeacher?.toString() === facultyId.toString(),
-      subjects: cls.subjects || [],
+      subjects: (cls.subjects || []).map(subject => ({
+        name: subject.name,
+        teacher: subject.teacher ? {
+          _id: subject.teacher._id,
+          name: subject.teacher.name,
+          email: subject.teacher.email
+        } : null
+      })),
     }));
 
     return res.status(200).json({

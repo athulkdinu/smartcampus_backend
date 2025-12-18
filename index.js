@@ -88,10 +88,10 @@ smartCampusServer.use("/api/announcements", announcementRoutes);
 // hr routes
 smartCampusServer.use("/api/hr", hrRoutes);
 
-// Fixed server port = 3000
-const PORT = 3000;
+// Use Render's PORT or default to 3000 for local development
+const PORT = process.env.PORT || 3000;
 
 // Start server
 smartCampusServer.listen(PORT, () => {
-  console.log(`Smart Campus Server running at http://localhost:${PORT}`);
+  console.log(`Smart Campus Server running on port ${PORT}`);
 });
